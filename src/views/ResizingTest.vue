@@ -33,8 +33,9 @@ export default {
   name: 'ResizingTest',
   data() {
     return {
-      topPanel: 48,
+      topPanel: 48, //탑 패널 높이
       leftPanel: {
+        height: 0,
         minWidth: 320, //레프트 패널 최소 너비
         maxWidth: 520, //레프트 패널 최대 너비
         area1: {
@@ -45,24 +46,31 @@ export default {
         }
       },
       showPanel: true,
-      prevH: 0
+      elLeftPanel: null,
+      prevH: 0,
+      area1: null,
+      area2: null
     };
   },
   mounted() {
+    this.init();
     this.resizePanelWidth();
     this.resizePanelRows();
   },
   methods: {
+    init() {
+      this.elLeftPanel = document.getElementById('leftPanel');
+      this.leftPanel.height = this.elLeftPanel.offsetHeight;
+      this.area1 = document.getElementsByClassName('area1')[0];
+      this.area2 = document.getElementsByClassName('area2')[0];
+    },
     resizePanelWidthAction(e){
-      console.log(e.x)
-      //left 패널 너비 320px ~ 520px
       if(e.x >= this.leftPanel.minWidth && e.x <= this.leftPanel.maxWidth) {
-        document.getElementById('leftPanel').style.width = e.x + 'px';
-        console.log(document.getElementById('leftPanel').style)
+        this.elLeftPanel.style.width = e.x + 'px';
       }
     },
-    resizePanelWidth(){ //레프트 패널 너비 리사이즈
-      const resizer = document.getElementById('resizerH')
+    resizePanelWidth(){ //leftPanel 너비 리사이즈
+      const resizer = document.getElementById('resizerH');
       resizer.addEventListener("mousedown", ()=> { 
         document.querySelectorAll("body")[0].style.cursor = "ew-resize";
         document.addEventListener("mousemove", this.resizePanelWidthAction, false);
@@ -74,17 +82,16 @@ export default {
     },
 
     resizePanelHeightAction(e){
-      console.log(e.y)
-      const parentH = document.getElementById('leftPanel').clientHeight + 48;
-      if(e.y >= 248 && (parentH-e.y) >= 200) {
-        document.getElementsByClassName('area1')[0].style.height = (e.y - 48) + 'px';
-        document.getElementsByClassName('area2')[0].style.height = (parentH - e.y) + 'px';
+      const fullHeight = this.leftPanel.height + this.topPanel;
+      if(e.y >= (200 + this.topPanel) && (fullHeight - e.y) >= 200) {
+        this.area1.style.height = (e.y - this.topPanel) + 'px';
+        this.area2.style.height = (fullHeight - e.y) + 'px';
       }
     },
     resizePanelRows(){ //레프트 패널 area1,2 높이 리사이즈
       const resizer = document.getElementById('resizerV')
       resizer.addEventListener("mousedown", ()=> {
-        document.querySelectorAll("body")[0].style.cursor = "ew-resize";
+        document.querySelectorAll("body")[0].style.cursor = "ns-resize";
         document.addEventListener("mousemove", this.resizePanelHeightAction, false);
       }, false)
       document.addEventListener("mouseup", ()=> {
@@ -94,18 +101,14 @@ export default {
     },
 
     toggleArea() {
-      const area1 = document.getElementsByClassName('area1')[0];
-      const area2 = document.getElementsByClassName('area2')[0];
-      const parentH = document.getElementById('leftPanel').clientHeight;
       this.showPanel = !this.showPanel;
       if(this.showPanel) {
-        console.log(parentH);
-        area1.style.display = "block";
-        area2.style.height = parentH - this.prevH + "px";
+        this.area1.style.display = "block";
+        this.area2.style.height = this.leftPanel.height - this.prevH + "px";
       } else {
-        this.prevH = document.getElementsByClassName('area1')[0].getBoundingClientRect().height;
-        area1.style.display = "none"
-        area2.style.height = "100%";
+        this.prevH = this.area1.offsetHeight;
+        this.area1.style.display = "none"
+        this.area2.style.height = "100%";
       }
     }
   }

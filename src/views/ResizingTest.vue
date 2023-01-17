@@ -2,7 +2,7 @@
   <div id="app">
     <div class="top"><span>TOP</span></div>
     <div id="leftPanel" class="left-panel">
-      <div class="area area1">
+      <div class="area area1" v-show="showPanel">
         <span>left area1</span>
         <div id="resizerV" class="resize-v"></div>
       </div>
@@ -33,12 +33,15 @@ export default {
   name: 'ResizingTest',
   data() {
     return {
-      topPanel: 48, //탑 패널 높이
+      topPanel: {
+        height: 48
+      }, //탑 패널 높이
       leftPanel: {
         height: 0,
         minWidth: 320, //레프트 패널 최소 너비
         maxWidth: 520, //레프트 패널 최대 너비
         area1: {
+          height: 300,
           minHeight: 200, //레프트 패널 area1 최소 높이
         },
         area2: {
@@ -46,8 +49,6 @@ export default {
         }
       },
       showPanel: true,
-      elLeftPanel: null,
-      prevH: 0,
       area1: null,
       area2: null
     };
@@ -59,14 +60,13 @@ export default {
   },
   methods: {
     init() {
-      this.elLeftPanel = document.getElementById('leftPanel');
-      this.leftPanel.height = this.elLeftPanel.offsetHeight;
-      this.area1 = document.getElementsByClassName('area1')[0];
-      this.area2 = document.getElementsByClassName('area2')[0];
+      this.leftPanel.height = document.getElementById('leftPanel').offsetHeight;
+      this.area1 = document.querySelector('.area1');
+      this.area2 = document.querySelector('.area2');
     },
     resizePanelWidthAction(e){
       if(e.x >= this.leftPanel.minWidth && e.x <= this.leftPanel.maxWidth) {
-        this.elLeftPanel.style.width = e.x + 'px';
+        document.getElementById('leftPanel').style.width = e.x + 'px';
       }
     },
     resizePanelWidth(){ //leftPanel 너비 리사이즈
@@ -82,9 +82,10 @@ export default {
     },
 
     resizePanelHeightAction(e){
-      const fullHeight = this.leftPanel.height + this.topPanel;
-      if(e.y >= (200 + this.topPanel) && (fullHeight - e.y) >= 200) {
-        this.area1.style.height = (e.y - this.topPanel) + 'px';
+      const fullHeight = this.leftPanel.height + this.topPanel.height;
+      if((e.y - this.topPanel.height) >= this.leftPanel.area1.minHeight && (fullHeight - e.y) >= this.leftPanel.area2.minHeight) {
+        this.leftPanel.area1.height = (e.y - this.topPanel.height);
+        this.area1.style.height = this.leftPanel.area1.height + 'px'
         this.area2.style.height = (fullHeight - e.y) + 'px';
       }
     },
@@ -103,11 +104,8 @@ export default {
     toggleArea() {
       this.showPanel = !this.showPanel;
       if(this.showPanel) {
-        this.area1.style.display = "block";
-        this.area2.style.height = this.leftPanel.height - this.prevH + "px";
+        this.area2.style.height = (this.leftPanel.height - this.leftPanel.area1.height) + "px";
       } else {
-        this.prevH = this.area1.offsetHeight;
-        this.area1.style.display = "none"
         this.area2.style.height = "100%";
       }
     }
